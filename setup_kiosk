@@ -56,8 +56,8 @@ After=getty@%i.service
 
 [Service]
 Type=simple
-# Note: Adjusted executable path to use firefox-esr if standard firefox isn't linked
-ExecStart=/usr/bin/cage /usr/bin/firefox --kiosk https://jonahhain.github.io/stundenplan/
+Environment=WLR_LIBINPUT_NO_DEVICES=1
+ExecStart=/usr/bin/cage -s /usr/bin/firefox -- --kiosk https://jonahhain.github.io/stundenplan/
 ExecStartPost=+sh -c "tty_name='%i'; exec chvt $${tty_name#tty}"
 Restart=always
 User=cage
@@ -87,4 +87,4 @@ systemctl enable cage@tty1.service
 systemctl set-default graphical.target
 
 echo "--- Fertig! ---"
-echo "\nBitte neu starten."
+echo "Bitte neu starten."
