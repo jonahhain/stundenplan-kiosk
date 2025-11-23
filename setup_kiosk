@@ -6,10 +6,8 @@ if [ "$EUID" -ne 0 ]; then
   exit 1
 fi
 
-echo "--- Installiere Updates... ---"
+echo "--- Installiere Updates und benötigte Software... ---"
 apt-get update && apt-get upgrade -y
-
-echo "--- Installiere benötigte Software... ---"
 apt-get install -y openssh-server firefox-esr cage
 
 echo "--- Aktviere SSH... ---"
@@ -59,7 +57,7 @@ After=getty@%i.service
 [Service]
 Type=simple
 # Note: Adjusted executable path to use firefox-esr if standard firefox isn't linked
-ExecStart=/usr/bin/cage /usr/bin/firefox-esr --kiosk http://127.0.0.1
+ExecStart=/usr/bin/cage /usr/bin/firefox --kiosk https://jonahhain.github.io/stundenplan/
 ExecStartPost=+sh -c "tty_name='%i'; exec chvt $${tty_name#tty}"
 Restart=always
 User=cage
