@@ -83,6 +83,7 @@ EOF
 
 echo "--- Aktiviere Kiosk-Modus... ---"
 systemctl daemon-reload
+systemctl enable NetworkManager-wait-online.service
 systemctl enable cage@tty1.service
 systemctl set-default graphical.target
 
