@@ -6,21 +6,15 @@ if [ "$EUID" -ne 0 ]; then
   exit 1
 fi
 
-echo "--- Installiere Updates und benötigte Software... ---"
 apt-get update && apt-get upgrade -y
-apt-get install -y openssh-server firefox-esr cage fonts-open-sans
+apt-get install -y openssh-server firefox-esr cage fonts-open-sans iputils-ping
 
-echo "--- Aktviere SSH... ---"
-systemctl enable --now ssh
-
-echo "--- Erstelle Nutzer 'cage'... ---"
 if ! id "cage" &>/dev/null; then
     useradd -m -G video,render -s /bin/bash cage
 else
     echo "Nutzer existiert bereits."
 fi
 
-echo "--- Schreibe Konfigurationen... ---"
 #
 # Quelle: https://github.com/cage-kiosk/cage/wiki/Starting-Cage-on-boot-with-systemd
 #
@@ -57,9 +51,12 @@ After=getty@%i.service
 [Service]
 Type=simple
 Environment=WLR_LIBINPUT_NO_DEVICES=1
-ExecStart=/usr/bin/cage -s /usr/bin/firefox -- --kiosk https://jonahhain.github.io/stundenplan/
+Environment=MOZ_ENABLE_WAYLAND=1
+ExecStartPre=/bin/sh -c 'until ping -c1 -W2 jonahhain.github.io >/dev/null 2>&1; do sleep 1; done'
+ExecStart=/usr/bin/cage -d -s /usr/bin/firefox -- --kiosk https://jonahhain.github.io/stundenplan/
 ExecStartPost=+sh -c "tty_name='%i'; exec chvt $${tty_name#tty}"
 Restart=always
+RestartSec=5
 User=cage
 # Log this user with utmp, letting it show up with commands 'w' and
 # 'who'. This is needed since we replace (a)getty.
@@ -81,9 +78,7 @@ WantedBy=graphical.target
 DefaultInstance=tty7
 EOF
 
-echo "--- Aktiviere Kiosk-Modus... ---"
 systemctl daemon-reload
-systemctl enable NetworkManager-wait-online.service
 systemctl enable cage@tty1.service
 systemctl set-default graphical.target
 
